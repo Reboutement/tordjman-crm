@@ -1,0 +1,13 @@
+# Versions figées. Résolues le 2026-11-01 avec `git ls-remote` sur les dépôts amont.
+# Elles correspondent à ce que font tourner les préproductions v16 (Frappe 16.54.0, CRM 1.89.2),
+# PAS à une preuve du commit exact utilisé lors de la construction du 27/10 (non conservé).
+FRAPPE_DOCKER_REPO=https://github.com/frappe/frappe_docker
+FRAPPE_DOCKER_SHA=61d35da827ebc04d01b64c9e78385597ccebc9d8
+FRAPPE_REPO=https://github.com/frappe/frappe
+FRAPPE_BRANCH=version-16
+# Étiquette amont correspondant à la version en service (Frappe 16.54.0), pour contrôle après construction.
+FRAPPE_TAG=v16.54.0
+FRAPPE_SHA=2fcb9397a1f1da353b21e53d2f97ec56653acd02
+CRM_REPO=https://github.com/frappe/crm
+CRM_TAG=v1.89.2
+CRM_SHA=e2d0b47a3ed3c1f45e4d74b3afeb84bf20afacd9

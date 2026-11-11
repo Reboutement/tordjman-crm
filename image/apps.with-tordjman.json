@@ -1,0 +1,4 @@
+[
+  { "url": "https://github.com/frappe/crm", "branch": "v1.89.2" },
+  { "url": "https://github.com/Reboutement/tordjman-crm", "branch": "v0.2.0" }
+]
