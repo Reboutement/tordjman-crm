@@ -154,3 +154,15 @@ class WhatsappTests(unittest.TestCase):
 		for n in ("tj_canal_d_entree", "tj_pub_meta_id", "tj_clic_pub_id", "tj_titre_de_la_pub", "tj_url_source"):
 			self.assertIn(n, names)
 		self.assertTrue(all(n.isascii() for n in names))
+
+
+class ApiResultShapeTests(unittest.TestCase):
+	def test_plan_never_overwrites_the_result_status(self):
+		"""Régression : le plan portait une clé « status » (l'étape) qui écrasait le statut du résultat."""
+		import ast
+		src = (Path(__file__).resolve().parents[1] / "api.py").read_text(encoding="utf-8")
+		for node in ast.walk(ast.parse(src)):
+			if isinstance(node, ast.Assign) and any(getattr(t, "id", "") == "plan" for t in node.targets):
+				keys = [k.value for k in node.value.keys if isinstance(k, ast.Constant)]
+				self.assertNotIn("status", keys)
+				self.assertIn("stage", keys)

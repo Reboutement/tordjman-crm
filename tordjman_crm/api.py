@@ -60,7 +60,7 @@ def create_lead(payload: str | dict, dry_run: bool = False) -> dict:
 	email = (data.get("email") or "").strip().lower() or None
 	external_id = data.get("external_id")
 	contact_name, conflict = _find_contact(external_id, email)
-	plan = {"pipeline": pipeline, "status": status, "tags": tags,
+	plan = {"pipeline": pipeline, "stage": status, "tags": tags,
 	        "contact": contact_name or "(à créer)", "dry_run": dry_run}
 	if conflict:
 		return {"status": "conflict", "reason": conflict, **plan}
@@ -140,7 +140,7 @@ def whatsapp_lead(payload: str | dict, dry_run: bool = False, pipeline: str = "S
 	for ev in events:
 		ad = ev["ad"]
 		existing = frappe.db.get_value("CRM Deal", {"mobile_no": ev["phone"], "tj_pub_meta_id": ad.get("ad_id") or ["is", "not set"]}, "name")
-		plan = {"phone": ev["phone"], "ad_id": ad.get("ad_id"), "pipeline": pipeline, "status": status}
+		plan = {"phone": ev["phone"], "ad_id": ad.get("ad_id"), "pipeline": pipeline, "stage": status}
 		if existing:
 			results.append({"status": "duplicate", "deal": existing, **plan})
 		elif dry_run:
