@@ -32,6 +32,7 @@ git -C "$BUILD_DIR" checkout -q FETCH_HEAD
 DOCKER_BUILDKIT=1 docker build \
   --build-arg "FRAPPE_PATH=$FRAPPE_REPO" \
   --build-arg "FRAPPE_BRANCH=$FRAPPE_BRANCH" \
+  --build-arg "CACHE_BUST=$(date +%s)" \
   --secret id=apps_json,src="$PWD/apps.json" \
   --tag "$IMAGE:$TAG" \
   --file "$BUILD_DIR/images/layered/Containerfile" \
