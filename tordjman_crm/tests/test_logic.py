@@ -3,7 +3,7 @@ import re
 import unittest
 from pathlib import Path
 
-from tordjman_crm import fields, pipelines, taxonomy, whatsapp
+from tordjman_crm import fields, ghl_import, pipelines, taxonomy, whatsapp
 
 FIELD_TYPES = {"Data", "Small Text", "Long Text", "Int", "Check", "Date", "Datetime", "Select", "Section Break"}
 REFERENCE = next((p / "docs" / "crm-reference-for-tajfine.md" for p in Path(__file__).resolve().parents
@@ -166,3 +166,33 @@ class ApiResultShapeTests(unittest.TestCase):
 				keys = [k.value for k in node.value.keys if isinstance(k, ast.Constant)]
 				self.assertNotIn("status", keys)
 				self.assertIn("stage", keys)
+
+
+class GhlImportTests(unittest.TestCase):
+	CSV = ("Contact Id,First Name,Last Name,Phone,Email,Business Name,Created,Last Activity,Tags,Source\n"
+	       "a1,Ana,Lopez,+33 6 12 34 56 78,ANA@Example.com,,2026-11-01 10:00:00,2026-11-02 11:00:00,\"intent-training, lang_fr, intent_mini_stage\",WhatsApp\n"
+	       ",Sans,Id,+33600000000,,,,,,\n"
+	       "a2,,,,,,,,,\n"
+	       "a3,,Dupont,,d@x.fr,,,,,\n"
+	       "a1,Doublon,Id,+33611111111,,,,,,\n")
+
+	def test_dashed_tags_are_normalized_and_forbidden_ones_dropped(self):
+		kept, dropped = ghl_import.normalize_tags("intent-training, lang_fr, intent_mini_stage, intent_training")
+		self.assertEqual(kept, ["intent_training", "lang_fr"])
+		self.assertEqual(dropped, ["intent_mini_stage"])
+
+	def test_export_is_parsed_without_losing_or_duplicating_contacts(self):
+		contacts, skipped = ghl_import.read_export(self.CSV)
+		self.assertEqual([c["ghl_id"] for c in contacts], ["a1", "a3"])
+		self.assertEqual(skipped, 3)  # sans identifiant, sans e-mail ni téléphone, doublon
+		self.assertEqual(contacts[0]["email"], "ana@example.com")
+		self.assertEqual(contacts[0]["phone"], "+33612345678")
+		self.assertEqual(contacts[0]["created"], "2026-11-01 10:00:00")
+		self.assertEqual(contacts[1]["first_name"], "Dupont")  # prénom absent : jamais de first_name vide
+
+	def test_unparseable_date_does_not_drop_the_contact(self):
+		self.assertIsNone(ghl_import.parse_date("n'importe quoi"))
+
+	def test_summary_counts_unsubscribed(self):
+		contacts, skipped = ghl_import.read_export(self.CSV)
+		self.assertEqual(ghl_import.summarize(contacts, skipped, {"a3"})["desabonnes_email"], 1)
